@@ -9,6 +9,8 @@
 #include <QLabel>
 #include <onnxruntime_cxx_api.h>
 #include <opencv2/opencv.hpp>
+#include <string>
+
 
 class ProjectXrayGUI : public QMainWindow {  //this is inheritance of a class
 	Q_OBJECT		// a Qt macro that makes signals and slots possible
@@ -20,6 +22,7 @@ public:
 private slots:
 	void openImage();
 	void classify();
+	void updateSurvivalChance(); //so that the survival chance updates wheb you change the age
 
 private:
 	QLabel* imageLabel;
@@ -29,6 +32,9 @@ private:
 	QString currentImagePath;
 	QSpinBox* ageInput;
 	QLabel* ageLabel;
+	QLabel* survivalChanceLabel;
+	QString getSurvivalChance(const std::string& label, int age);
+	QString lastLabel;
 
 	Ort::Env env;
 	Ort::Session* session;
