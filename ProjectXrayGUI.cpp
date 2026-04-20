@@ -27,13 +27,29 @@ ProjectXrayGUI::ProjectXrayGUI(QWidget* parent) //the constructor is called
 	imageLabel->setStyleSheet("border: 2px solid gray;");
 	mainLayout->addWidget(imageLabel);
 
-	// Resultaat label
+	// Result label
 	resultLabel = new QLabel("Result: -");
-	resultLabel->setAlignment(Qt::AlignCenter);
+	resultLabel->setAlignment(Qt::AlignVCenter);
 	resultLabel->setStyleSheet("font-size: 18px; font-weight: bold;");
 	mainLayout->addWidget(resultLabel);
+	// Age label
+	QHBoxLayout* ageLayout = new QHBoxLayout();
+	ageLabel = new QLabel("Age of patient");
+	ageLabel->setAlignment(Qt::AlignVCenter);
+	ageLabel->setStyleSheet("margin-top: 30px; margin-bottom: 30px; font-size: 15px; font-weight: bold;");
+	ageInput = new QSpinBox();
+	ageInput->setRange(0, 125);
+	QFont font = ageInput->font();
+	font.setPointSize(10); 
+	ageInput->setFont(font);
+	ageInput->setFixedWidth(120);
 
-	// Knoppen
+	ageLayout->addWidget(ageLabel);
+	ageLayout->addWidget(ageInput);
+	ageLayout->addStretch();
+	mainLayout->addLayout(ageLayout);
+
+	// Buttons
 	QHBoxLayout* btnLayout = new QHBoxLayout();
 	openButton = new QPushButton("Open image");
 	classifyButton = new QPushButton("Classify");
@@ -41,6 +57,7 @@ ProjectXrayGUI::ProjectXrayGUI(QWidget* parent) //the constructor is called
 	btnLayout->addWidget(openButton);
 	btnLayout->addWidget(classifyButton);
 	mainLayout->addLayout(btnLayout);
+
 
 	connect(openButton, &QPushButton::clicked, this, &ProjectXrayGUI::openImage); //this is where you connect the clicked buttons (signals) with a function 
 	connect(classifyButton, &QPushButton::clicked, this, &ProjectXrayGUI::classify);
@@ -50,7 +67,7 @@ ProjectXrayGUI::ProjectXrayGUI(QWidget* parent) //the constructor is called
 }
 
 ProjectXrayGUI::~ProjectXrayGUI() {
-	delete session;
+	delete session;  //this is the destructor
 }
 
 void ProjectXrayGUI::openImage() {
@@ -85,7 +102,7 @@ void ProjectXrayGUI::classify() {
 
 	auto memInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
 	std::vector<int64_t> inputShape = { 1, 299, 299, 3 };
-	Ort::Value inputTensor = Ort::Value::CreateTensor<float>(
+	Ort::Value inputTensor = Ort::Value::CreateTensor<float>( //The preprocessed image is passed to the ONNX model as a tensor (a type of multidimensional array).
 		memInfo, inputData.data(), inputData.size(),
 		inputShape.data(), inputShape.size()
 		);
@@ -99,7 +116,7 @@ void ProjectXrayGUI::classify() {
 		outputNames, 1
 	);
 
-	float* scores = outputs[0].GetTensorMutableData<float>();
+	float* scores = outputs[0].GetTensorMutableData<float>(); //the model returns 4 numbers between 0 and 1: the probability for each class.
 	std::vector<std::string> labels = { "Covid", "Normal", "Viral Pneumonia", "Non-Covid" };
 
 	int bestIdx = 0;
