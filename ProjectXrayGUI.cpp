@@ -32,23 +32,34 @@ ProjectXrayGUI::ProjectXrayGUI(QWidget* parent) //the constructor is called
 	resultLabel->setAlignment(Qt::AlignVCenter);
 	resultLabel->setStyleSheet("font-size: 18px; font-weight: bold;");
 	mainLayout->addWidget(resultLabel);
-	// Age label
+
+// Age label
 	QHBoxLayout* ageLayout = new QHBoxLayout();
 	ageLabel = new QLabel("Age of patient");
 	ageLabel->setAlignment(Qt::AlignVCenter);
-	ageLabel->setStyleSheet("margin-top: 30px; margin-bottom: 30px; font-size: 15px; font-weight: bold;");
+	ageLabel->setStyleSheet("font-size: 15px; font-weight: bold;"); // Marges weggehaald voor strakkere layout
+
 	ageInput = new QSpinBox();
 	ageInput->setRange(0, 125);
 	QFont font = ageInput->font();
-	font.setPointSize(10); 
+	font.setPointSize(10);
 	ageInput->setFont(font);
+	ageInput->setValue(25);
 	ageInput->setFixedWidth(120);
+
+	// Survival rate label  (geen QGBoxLayout because it is on the same horizontal line
+	survivalChanceLabel = new QLabel(""); // Leeg starten, wordt gevuld na classify
+	survivalChanceLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+	survivalChanceLabel->setStyleSheet("font-size: 15px; font-weight: bold;");
 
 	ageLayout->addWidget(ageLabel);
 	ageLayout->addWidget(ageInput);
-	ageLayout->addStretch();
-	mainLayout->addLayout(ageLayout);
+	ageLayout->addStretch(); // This sets the survival label to the very right
+	ageLayout->addWidget(survivalChanceLabel);
 
+	// Add horizontal layout to the mainLayout
+	mainLayout->addLayout(ageLayout);
+	
 	// Buttons
 	QHBoxLayout* btnLayout = new QHBoxLayout();
 	openButton = new QPushButton("Open image");
@@ -61,6 +72,7 @@ ProjectXrayGUI::ProjectXrayGUI(QWidget* parent) //the constructor is called
 
 	connect(openButton, &QPushButton::clicked, this, &ProjectXrayGUI::openImage); //this is where you connect the clicked buttons (signals) with a function 
 	connect(classifyButton, &QPushButton::clicked, this, &ProjectXrayGUI::classify);
+	connect(ageInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &ProjectXrayGUI::updateSurvivalChance);
 
 	setWindowTitle("X-Ray COVID Detector");
 	resize(500, 550);
@@ -82,6 +94,7 @@ void ProjectXrayGUI::openImage() {
 	imageLabel->setPixmap(pix.scaled(400, 400, Qt::KeepAspectRatio));
 	classifyButton->setEnabled(true);
 	resultLabel->setText("Result: -");
+	survivalChanceLabel->setText("");
 }
 
 void ProjectXrayGUI::classify() {
@@ -124,9 +137,41 @@ void ProjectXrayGUI::classify() {
 		if (scores[i] > scores[bestIdx]) bestIdx = i;
 	}
 
+	lastLabel = QString::fromStdString(labels[bestIdx]);
+
 	QString result = QString("Diagnose: %1 (%2%)")
-		.arg(QString::fromStdString(labels[bestIdx]))
+		.arg(lastLabel)
 		.arg(scores[bestIdx] * 100, 0, 'f', 1);
 
 	resultLabel->setText(result);
+	QString survivalText = getSurvivalChance(lastLabel.toStdString(), ageInput->value());
+	survivalChanceLabel->setText(survivalText);
+}
+
+QString ProjectXrayGUI::getSurvivalChance(const std::string& label, int age) {
+	double survivalChance;
+	
+	if (label == "Normal" || label == "Non-Covid") {
+		return "Survival chance: 100% (no infection detected)";
+	}
+	if (age <= 18) survivalChance = 99.9;
+	else if (age <= 44) survivalChance = 99.8;
+	else if (age <= 54) survivalChance = 99.4;
+	else if (age <= 64) survivalChance = 98.0;
+	else if (age <= 74) survivalChance = 94.0;
+	else if (age <= 84) survivalChance = 87.0;
+	else survivalChance = 75.0;
+
+	if (label == "Viral Pneumonia") {
+		survivalChance = qMin(99.9, survivalChance + 2.0); //qMin gives the smallest of the two, 99.9 or survivalRate + 2.0
+	}
+	return QString("Survival chance %1%").arg(survivalChance, 0, 'f', 1);
+}
+
+void ProjectXrayGUI::updateSurvivalChance() {
+	// Only update if there is a diagnose is done
+	if (!lastLabel.isEmpty()) {
+		QString survivalText = getSurvivalChance(lastLabel.toStdString(), ageInput->value());
+		survivalChanceLabel->setText(survivalText);
+	}
 }
