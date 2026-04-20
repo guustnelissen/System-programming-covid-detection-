@@ -5,6 +5,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QString>
+#include <QSpinBox>
+#include <QLabel>
 #include <onnxruntime_cxx_api.h>
 #include <opencv2/opencv.hpp>
 
@@ -25,6 +27,8 @@ private:
 	QPushButton* openButton;
 	QPushButton* classifyButton;
 	QString currentImagePath;
+	QSpinBox* ageInput;
+	QLabel* ageLabel;
 
 	Ort::Env env;
 	Ort::Session* session;
