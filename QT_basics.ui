@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>QT_basicsClass</class>
- <widget class="QMainWindow" name="QT_basicsClass">
+ <class>ProjectXrayGUIClass</class>
+ <widget class="QMainWindow" name="ProjectXrayGUIClass">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -173,7 +173,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>
@@ -189,7 +189,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="QT_basics.qrc"/>
+  <include location="ProjectXrayGUI.qrc"/>
  </resources>
  <connections/>
 </ui>
