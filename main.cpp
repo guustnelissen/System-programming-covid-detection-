@@ -1,10 +1,10 @@
-#include "QT_basics.h"
+#include "ProjectXrayGUI.h"
 #include <QtWidgets/QApplication>
 
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-	QT_basics w;
+	ProjectXrayGUI w;
 	w.show();
 	return a.exec();
 }
